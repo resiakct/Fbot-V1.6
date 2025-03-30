@@ -20,7 +20,6 @@ node index.js
 ### Noob and Brainless Creator: [Mark Martinez](https://www.facebook.com/share/1BWKFtqg2u/)
 
 
-### FCA Library: ws3-fca
+ FCA Library: ws3-fca
 
-### free to use my autobot-x-api:
-[Autobot-x-Api](https://autobot.mark-projects.site/)
+### free to use my autobot-x-api:[Autobot-x-Api](https://autobot.mark-projects.site/)
