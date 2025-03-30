@@ -4,7 +4,7 @@ module.exports = {
     usage: "help [command_name] (optional) | help all",
     version: "1.3",
 
-    execute(api, event, args) {
+    execute({ api, event, args }) {
         const { threadID, messageID } = event;
 
         if (args.length > 0) {
@@ -19,14 +19,11 @@ module.exports = {
 
                 const allHelpMessage = `
 ╔════════════╗
-     🤖 All Command 🤖
+     🤖 All Commands 🤖
 ╚════════════╝
 ${allCommands}
 
-Use 'help [command_name]' for details.
-
-👑 Owner: Mark Martinez
-                `;
+Use 'help [command_name]' for details.`;
 
                 return api.sendMessage(allHelpMessage, threadID, messageID);
             }
@@ -45,10 +42,7 @@ Use 'help [command_name]' for details.
 Name: ${command.name}
 Usage: ${command.usage}
 Prefix Required: ${command.usePrefix ? "✅ Yes" : "❌ No"}
-Version: ${command.version}
-
-👑 Owner: Mark Martinez
-            `;
+Version: ${command.version}`;
 
             return api.sendMessage(commandHelpMessage, threadID, messageID);
         }
@@ -68,10 +62,7 @@ Here are some commands:
 ${commandArray}
 
 Use 'help all' to see all commands.
-Use 'help [command_name]' for details.
-
-👑 Owner: Mark Martinez
-        `;
+Use 'help [command_name]' for details.`;
 
         api.sendMessage(helpMessage, threadID, messageID);
     }

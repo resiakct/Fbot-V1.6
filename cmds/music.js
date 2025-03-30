@@ -3,16 +3,16 @@ const axios = require("axios");
 const path = require("path");
 
 module.exports = {
-    name: "ytsdlmp3",
+    name: "music",
     usePrefix: false,
-    usage: "ytsdlmp3 [query]",
+    usage: "music [query]",
     version: "1.0",
 
-    async execute(api, event, args) {
+    async execute({ api, event, args }) {
         const { threadID, messageID } = event;
 
         if (!args.length) {
-            return api.sendMessage("❌ Please provide a song name.\nUsage: ytsdlmp3 [query]", threadID, messageID);
+            return api.sendMessage("❌ Please provide a song name.\nUsage: music [query]", threadID, messageID);
         }
 
         const query = encodeURIComponent(args.join(" "));
@@ -68,7 +68,6 @@ module.exports = {
                 api.setMessageReaction("❌", messageID, () => {}, true);
                 api.sendMessage("⚠️ Failed to download audio.", threadID, messageID);
             });
-
         } catch (error) {
             console.error("❌ Error fetching audio:", error);
             api.setMessageReaction("❌", messageID, () => {}, true);

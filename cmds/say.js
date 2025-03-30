@@ -8,7 +8,7 @@ module.exports = {
     usage: "say <text>",
     version: "1.0",
 
-    async execute(api, event, args) {
+    execute: async ({ api, event, args }) => {
         const { threadID, messageID } = event;
 
         if (args.length === 0) {

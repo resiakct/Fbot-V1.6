@@ -5,8 +5,8 @@ module.exports = {
     usePrefix: true,
     usage: "ping",
     version: "1.2",
-    
-    execute(api, event, args) {
+
+    execute: async ({ api, event }) => {
         const { threadID } = event;
         const startTime = Date.now(); // Start time
 
@@ -20,7 +20,7 @@ module.exports = {
         });
     },
 
-    onStart(api) {
+    onStart: async ({ api }) => {
         console.log("✅ Auto-ping scheduler started.");
 
         // Schedule auto-ping every 2 hours

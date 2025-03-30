@@ -6,10 +6,11 @@ const config = JSON.parse(fs.readFileSync(configPath));
 
 module.exports = {
     name: "prefix",
-    usePrefix: false, // No need to require a prefix for this command
+    usePrefix: false,
     usage: "prefix",
     version: "1.0",
-    execute(api, event, args) {
+
+    execute: async ({ api, event }) => {
         const botPrefix = config.prefix || "/";
         const botName = config.botName || "My Bot";
 

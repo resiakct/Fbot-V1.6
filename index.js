@@ -1,4 +1,4 @@
- const fs = require('fs');
+const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const login = require('ws3-fca');
@@ -7,7 +7,6 @@ const scheduleTasks = require('./custom'); // Import scheduled tasks
 const app = express();
 const PORT = 3000;
 
-// Load bot config safely
 const loadConfig = (filePath) => {
     try {
         if (!fs.existsSync(filePath)) {
@@ -24,11 +23,9 @@ const loadConfig = (filePath) => {
 const config = loadConfig("./config.json");
 const botPrefix = config.prefix || "/";
 
-// Global events and commands
 global.events = new Map();
 global.commands = new Map();
 
-// Function to load event handlers
 const loadEvents = () => {
     try {
         const eventFiles = fs.readdirSync('./events').filter(file => file.endsWith('.js'));
@@ -45,7 +42,6 @@ const loadEvents = () => {
     }
 };
 
-// Function to load commands
 const loadCommands = () => {
     try {
         const commandFiles = fs.readdirSync('./cmds').filter(file => file.endsWith('.js'));
@@ -62,26 +58,17 @@ const loadCommands = () => {
     }
 };
 
-// Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Serve index.html on root URL
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
-
-// Start HTTP Server
 app.listen(PORT, () => {
     console.log(`🌐 Web Server running at http://localhost:${PORT}`);
 });
 
-// Load Facebook bot state
 const appState = loadConfig("./appState.json");
-
-// ✅ Store detected URLs per thread (conversation)
 const detectedURLs = new Set();
 
-// Function to start the bot
 const startBot = async () => {
     try {
         login({ appState }, (err, api) => {
@@ -94,58 +81,50 @@ const startBot = async () => {
             console.clear();
             api.setOptions(config.option);
             console.log("🤖 Bot is now online!");
-
-            // Notify the owner
-            const ownerID = config.ownerID || "100030880666720"; // Set owner ID from config
+            const ownerID = config.ownerID || "100030880666720";
             api.sendMessage("🤖 Bot has started successfully!", ownerID);
 
-            // Run startup events
             global.events.forEach((eventHandler, eventName) => {
                 if (eventHandler.onStart) {
                     eventHandler.onStart(api);
                 }
             });
 
-            // ✅ **Listen to Facebook messages**
             api.listenMqtt(async (err, event) => {
                 if (err) {
                     console.error("❌ Error listening to events:", err);
                     return;
                 }
 
-                // Process event-based functions
                 if (global.events.has(event.type)) {
                     try {
-                        await global.events.get(event.type).execute(api, event);
+                        await global.events.get(event.type).execute({ api, event });
                     } catch (error) {
                         console.error(`❌ Error in event '${event.type}':`, error);
                     }
                 }
 
-                // ✅ **Prevent duplicate URL detections per chat**
                 const urlRegex = /(https?:\/\/[^\s]+)/gi;
                 if (event.body && urlRegex.test(event.body)) {
                     const urlCommand = global.commands.get("url");
                     if (urlCommand) {
-                        const detectedURL = event.body.match(urlRegex)[0]; // Extract first URL
+                        const detectedURL = event.body.match(urlRegex)[0];
                         const threadID = event.threadID;
                         const uniqueKey = `${threadID}-${detectedURL}`;
 
-                        if (detectedURLs.has(uniqueKey)) return; // Skip duplicate responses
+                        if (detectedURLs.has(uniqueKey)) return;
 
                         detectedURLs.add(uniqueKey);
                         try {
-                            await urlCommand.execute(api, event);
+                            await urlCommand.execute({ api, event });
                         } catch (error) {
-                            console.error(`❌ Error in URL detection:`, error);
+                            console.error("❌ Error in URL detection:", error);
                         }
 
-                        // Remove URL record after 1 hour
                         setTimeout(() => detectedURLs.delete(uniqueKey), 3600000);
                     }
                 }
 
-                // ✅ **Process commands**
                 if (event.body) {
                     let args = event.body.trim().split(/ +/);
                     let commandName = args.shift().toLowerCase();
@@ -161,7 +140,7 @@ const startBot = async () => {
                     if (command) {
                         if (command.usePrefix && !event.body.startsWith(botPrefix)) return;
                         try {
-                            await command.execute(api, event, args);
+                            await command.execute({ api, event, args });
                         } catch (error) {
                             console.error(`❌ Error executing command '${commandName}':`, error);
                         }
@@ -169,7 +148,6 @@ const startBot = async () => {
                 }
             });
 
-            // Set up auto-restart and auto-greet
             scheduleTasks(ownerID, api, { autoRestart: true, autoGreet: true });
         });
     } catch (error) {
@@ -178,7 +156,6 @@ const startBot = async () => {
     }
 };
 
-// Load events and commands before starting the bot
 loadEvents();
 loadCommands();
 startBot();

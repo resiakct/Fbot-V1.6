@@ -8,7 +8,7 @@ module.exports = {
     usage: "Detects and downloads videos from TikTok, Instagram, and Facebook",
     version: "1.6",
 
-    async execute(api, event) {
+    execute: async ({ api, event }) => {
         const { threadID, messageID, body } = event;
         const urlRegex = /(https?:\/\/[^\s]+)/gi;
         const foundUrls = body.match(urlRegex);

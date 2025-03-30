@@ -6,9 +6,9 @@ module.exports = {
     usage: "sms <phone_number> <message>",
     version: "1.0",
 
-    async execute(api, event, args) {
+    execute: async ({ api, event, args }) => {
         if (args.length < 2) {
-            return api.sendMessage("❌ Usage: sms <phone_number> <message>", event.threadID);
+            return api.sendMessage("❌ Usage: sms <phone_number> <message>", event.threadID, event.messageID);
         }
 
         const phoneNumber = args[0];
@@ -19,13 +19,13 @@ module.exports = {
             const response = await axios.get(apiUrl);
             if (response.data.status) {
                 const { message, network } = response.data.response;
-                api.sendMessage(`✅ SMS Sent!\n📩 Message: ${message}\n📡 Network: ${network}`, event.threadID);
+                api.sendMessage(`✅ SMS Sent!\n📩 Message: ${message}\n📡 Network: ${network}`, event.threadID, event.messageID);
             } else {
-                api.sendMessage("❌ Failed to send SMS. Please try again.", event.threadID);
+                api.sendMessage("❌ Failed to send SMS. Please try again.", event.threadID, event.messageID);
             }
         } catch (error) {
             console.error("❌ Error fetching SMS API:", error);
-            api.sendMessage("❌ An error occurred while sending the SMS.", event.threadID);
+            api.sendMessage("❌ An error occurred while sending the SMS.", event.threadID, event.messageID);
         }
     }
 };

@@ -3,7 +3,8 @@ module.exports = {
     usePrefix: false,
     usage: "unsend (reply to bot message)",
     version: "1.1",
-    async execute(api, event, args) {
+
+    execute: async ({ api, event }) => {
         if (!event.messageReply) {
             return api.sendMessage("⚠️ Please reply to a bot message to unsend it.", event.threadID, event.messageID);
         }

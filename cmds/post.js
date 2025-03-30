@@ -9,17 +9,17 @@ module.exports = {
     version: "1.4",
     description: "Creates a Facebook post with a message and optional attachment.",
 
-    async execute(api, event, args) {
-        const { threadID, messageID, messageReply } = event;
+    execute: async ({ api, event, args }) => {
+        const { threadID, messageID, messageReply, attachments: eventAttachments } = event;
         let postMessage = args.join(" ");
         let attachments = [];
 
         try {
             // Check if the user replied to a message with attachments
-            if (messageReply && messageReply.attachments.length > 0) {
+            if (messageReply?.attachments?.length > 0) {
                 attachments = messageReply.attachments;
-            } else if (event.attachments.length > 0) {
-                attachments = event.attachments;
+            } else if (eventAttachments.length > 0) {
+                attachments = eventAttachments;
             }
 
             // Download attachments if available

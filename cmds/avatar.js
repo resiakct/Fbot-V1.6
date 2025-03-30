@@ -6,7 +6,8 @@ module.exports = {
     name: "changeavatar",
     usage: "changeavatar <image_url> OR reply to an image with 'changeavatar'",
     description: "Change the bot's profile picture using an image URL or a replied image.",
-    async execute(api, event, args) {
+    
+    execute: async ({ api, event, args }) => {
         let imageUrl;
 
         // If the user replied to a message with an image
