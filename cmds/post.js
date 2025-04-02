@@ -5,13 +5,45 @@ const path = require("path");
 module.exports = {
     name: "post",
     usePrefix: false,
-    usage: "post <message> (or reply with an image attachment)",
-    version: "1.4",
-    description: "Creates a Facebook post with a message and optional attachment.",
+    usage: "post <message> [@user | UID] (or reply with an image attachment)",
+    version: "2.0",
+    description: "Creates a Facebook post with a message, mentions a user if in a group chat, and supports attachments.",
 
     execute: async ({ api, event, args }) => {
-        const { threadID, messageID, messageReply, attachments: eventAttachments } = event;
-        let postMessage = args.join(" ");
+        const { threadID, messageID, messageReply, attachments: eventAttachments, mentions } = event;
+        let postMessage = args.join(" ").trim();
+        let taggedUsers = [];
+        let groupMentions = [];
+
+        // Validate message input
+        if (!postMessage && !messageReply) {
+            return api.sendMessage("❌ Error: You must provide a message for the post.", threadID, messageID);
+        }
+
+        // Extract UID (Supports both `1000xxxxxx` and `<1000xxxxxx>`)
+        const uidRegex = /(?:<)?(\d{15,20})(?:>)?/g;
+        let match;
+        while ((match = uidRegex.exec(postMessage)) !== null) {
+            const userID = match[1];
+            taggedUsers.push({
+                id: userID,
+                tag: `@User`,
+                fromIndex: postMessage.indexOf(match[0])
+            });
+            postMessage = postMessage.replace(match[0], `@User`);
+        }
+
+        // If in a group, use @mentions instead of just tagging by UID
+        if (Object.keys(mentions).length > 0) {
+            for (const [mentionID, mentionTag] of Object.entries(mentions)) {
+                groupMentions.push({
+                    id: mentionID,
+                    tag: mentionTag,
+                    fromIndex: postMessage.indexOf(mentionTag)
+                });
+            }
+        }
+
         let attachments = [];
 
         try {
@@ -45,25 +77,35 @@ module.exports = {
                 files.push(fs.createReadStream(filePath));
             }
 
-            // Create post with message and attachments
+            // Create post data with mentions
             const postData = { body: postMessage };
+            if (taggedUsers.length > 0) postData.mentions = taggedUsers;
             if (files.length > 0) postData.attachment = files;
+
+            // Send message with mentions in group chat
+            let finalMessage = postMessage;
+            let finalMentions = taggedUsers.length > 0 ? taggedUsers : groupMentions;
 
             api.createPost(postData)
                 .then((url) => {
                     if (url) {
-                        api.sendMessage(`✅ Post created successfully!\n🔗 ${url}`, threadID, messageID);
+                        api.sendMessage({ 
+                            body: `✅ Post created successfully!\n🔗 ${url}\n\n${finalMessage}`, 
+                            mentions: finalMentions 
+                        }, threadID, messageID);
                     } else {
-                        api.sendMessage("✅ Post created, but no URL was returned.", threadID, messageID);
+                        api.sendMessage({ 
+                            body: `✅ Post created, but no URL was returned.\n\n${finalMessage}`, 
+                            mentions: finalMentions 
+                        }, threadID, messageID);
                     }
                 })
                 .catch((error) => {
                     if (error?.data?.story_create?.story?.url) {
-                        return api.sendMessage(
-                            `✅ Post created successfully!\n🔗 ${error.data.story_create.story.url}\n⚠️ (Note: Post created with server warnings)`,
-                            threadID,
-                            messageID
-                        );
+                        return api.sendMessage({ 
+                            body: `✅ Post created successfully!\n🔗 ${error.data.story_create.story.url}\n⚠️ (Note: Post created with server warnings)\n\n${finalMessage}`, 
+                            mentions: finalMentions 
+                        }, threadID, messageID);
                     }
 
                     let errorMessage = "❌ An unknown error occurred.";
