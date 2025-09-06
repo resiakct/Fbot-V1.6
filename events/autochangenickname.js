@@ -12,9 +12,9 @@ module.exports = {
 
                 try {
                     await api.changeNickname(botNickname, threadID, botID);
-                    console.log(`✅ Nickname changed in new group: ${threadID}`);
+                    console.log(` `);
                 } catch (error) {
-                    console.error("❌ Error changing nickname:", error);
+                    console.error(error);
                 }
             }
         }
