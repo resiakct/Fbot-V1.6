@@ -8,8 +8,8 @@
     "autoMarkDelivery": false,
     "autoMarkRead": false
   },
-  "botPrefix": "/",
-  "botName": "Made in ChatGPT",
+  "botPrefix": ".",
+  "botName": ".",
   "botAdmins": [
     ""
   ]
