@@ -8,7 +8,7 @@ module.exports = {
 
             // Check if the bot was added to the group
             if (addedUsers.includes(botID)) {
-                const botNickname = "🤖 ChatBot"; // Change this to your preferred nickname
+                const botNickname = "."; // Change this to your preferred nickname
 
                 try {
                     await api.changeNickname(botNickname, threadID, botID);
